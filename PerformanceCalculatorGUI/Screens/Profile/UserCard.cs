@@ -53,7 +53,7 @@ namespace PerformanceCalculatorGUI.Screens.Profile
 
             Data.ValueChanged += val =>
             {
-                liveLabel.Text = $"Live: {val.NewValue.LivePP:N1} pp";
+                liveLabel.Text = $"Baseline: {val.NewValue.LivePP:N1} pp";
                 localLabel.Text = $"New: {val.NewValue.LocalPP:N1} pp";
                 differenceLabel.Text = $"{val.NewValue.LocalPP - val.NewValue.LivePP:+0.0;-0.0;-}";
                 playcountLabel.Text = $"{val.NewValue.PlaycountPP:N1} from playcount";

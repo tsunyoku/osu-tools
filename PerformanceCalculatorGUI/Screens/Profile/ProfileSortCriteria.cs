@@ -5,7 +5,7 @@ namespace PerformanceCalculatorGUI.Screens.Profile
 {
     public enum ProfileSortCriteria
     {
-        Live,
+        Baseline,
         Difference,
         Local
     }

@@ -25,6 +25,7 @@ using osu.Game.Rulesets.Mods;
 using osuTK;
 using osuTK.Graphics;
 using osuTK.Input;
+using BaselineOsu.Difficulty;
 using PerformanceCalculatorGUI.Components;
 using PerformanceCalculatorGUI.Components.TextBoxes;
 using PerformanceCalculatorGUI.Configuration;
@@ -355,7 +356,19 @@ namespace PerformanceCalculatorGUI.Screens
                                 continue;
 
                             var perfAttributes = await performanceCalculator.CalculateAsync(parsedScore.ScoreInfo, difficultyAttributes, token).ConfigureAwait(false);
-                            var extendedScore = new ExtendedScore(score, difficultyAttributes, perfAttributes);
+
+                            double? baselinePP = null;
+
+                            if (ruleset.Value.ShortName == "osu")
+                            {
+                                var baselineDiffCalc = new OsuDifficultyCalculator(ruleset.Value, working);
+                                var baselineDiffAttrs = baselineDiffCalc.Calculate(mods);
+                                var baselinePerfCalc = new OsuPerformanceCalculator();
+                                var baselinePerfAttrs = await baselinePerfCalc.CalculateAsync(parsedScore.ScoreInfo, baselineDiffAttrs, token).ConfigureAwait(false);
+                                baselinePP = baselinePerfAttrs.Total;
+                            }
+
+                            var extendedScore = new ExtendedScore(score, difficultyAttributes, perfAttributes, baselinePP);
                             plays.Add(extendedScore);
                         }
                     }
@@ -428,12 +441,17 @@ namespace PerformanceCalculatorGUI.Screens
                     for (int i = 0; i < localOrdered.Count; i++)
                         totalLocalPP += (decimal)(Math.Pow(0.95, i) * localOrdered[i].PerformanceAttributes?.Total ?? 0);
 
-                    decimal totalLivePP = player.Statistics.PP ?? (decimal)0.0;
-
                     // https://github.com/ppy/osu-queue-score-statistics/blob/842653412d66eef527f7b7067b7cf50e886de954/osu.Server.Queues.ScoreStatisticsProcessor/Helpers/UserTotalPerformanceAggregateHelper.cs#L36-L38
                     // this might be slightly incorrect for some profiles due to the deduplication happening on the osu-queue-score-statistics side which we can't account for here
                     decimal playcountBonusPP = (decimal)((417.0 - 1.0 / 3.0) * (1.0 - Math.Pow(0.995, Math.Min(player.BeatmapPlayCountsCount, 1000))));
                     totalLocalPP += playcountBonusPP;
+
+                    decimal totalBaselinePP = 0;
+
+                    for (int i = 0; i < liveOrdered.Count; i++)
+                        totalBaselinePP += (decimal)(Math.Pow(0.95, i) * liveOrdered[i].LivePP ?? 0);
+
+                    totalBaselinePP += playcountBonusPP;
 
                     Schedule(() =>
                     {
@@ -441,7 +459,7 @@ namespace PerformanceCalculatorGUI.Screens
                         {
                             userPanel.Data.Value = new UserCardData
                             {
-                                LivePP = totalLivePP,
+                                LivePP = totalBaselinePP,
                                 LocalPP = totalLocalPP,
                                 PlaycountPP = playcountBonusPP
                             };
@@ -491,7 +509,7 @@ namespace PerformanceCalculatorGUI.Screens
 
             switch (sortCriteria)
             {
-                case ProfileSortCriteria.Live:
+                case ProfileSortCriteria.Baseline:
                     sortedScores = scores.Children.OrderByDescending(x => x.Score.LivePP).ToArray();
                     break;
 

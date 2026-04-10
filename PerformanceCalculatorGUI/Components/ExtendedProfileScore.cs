@@ -45,12 +45,12 @@ namespace PerformanceCalculatorGUI.Components
         public PerformanceAttributes? PerformanceAttributes { get; }
         public DifficultyAttributes DifficultyAttributes { get; }
 
-        public ExtendedScore(SoloScoreInfo score, DifficultyAttributes difficultyAttributes, PerformanceAttributes? performanceAttributes)
+        public ExtendedScore(SoloScoreInfo score, DifficultyAttributes difficultyAttributes, PerformanceAttributes? performanceAttributes, double? baselinePP = null)
         {
             SoloScore = score;
             PerformanceAttributes = performanceAttributes;
             DifficultyAttributes = difficultyAttributes;
-            LivePP = score.PP;
+            LivePP = baselinePP;
         }
     }
 
@@ -316,7 +316,7 @@ namespace PerformanceCalculatorGUI.Components
                                                                 new OsuSpriteText
                                                                 {
                                                                     Font = OsuFont.GetFont(size: small_text_font_size),
-                                                                    Text = "live"
+                                                                    Text = "baseline"
                                                                 }
                                                             }
                                                         }
