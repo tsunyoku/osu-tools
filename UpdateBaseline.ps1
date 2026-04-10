@@ -1,4 +1,4 @@
-$Src = "..\..\osu\osu.Game.Rulesets.Osu\Difficulty"
+$Src = "..\osu\osu.Game.Rulesets.Osu\Difficulty"
 $Dst = "BaselineOsuRuleset\Difficulty"
 
 if (Test-Path $Dst)
